@@ -57,7 +57,6 @@ export const PageInfo = () => {
             // 折扣mint的中转，忽略
             if (item.args?.from === OldMint) return;
             let to = item.args?.to;
-            if (to === OldMint) to = item.address; // 成功半价mint
             adds.push({
               tx: item.transactionHash,
               key,
@@ -123,6 +122,7 @@ export const PageInfo = () => {
   const renderEventTransfer = (evt: TransferEvent) => {
     let color = 'default';
     let event: string = evt.event;
+    let to = evt.to;
     if (evt.from === ethers.constants.AddressZero) {
       color = 'cyan';
       event = 'Mint';
@@ -131,12 +131,18 @@ export const PageInfo = () => {
         color = 'error';
       }
     }
-    if (evt.to === Config.Contract.Barn) {
-      event = 'Staked';
-      color = 'orange';
+    if (evt.from === Config.Contract.Barn) {
+      event = 'Leave Barn';
+      color = 'pink';
+      to = evt.emiter;
+    } else if (evt.to === Config.Contract.Barn) {
+      event = 'Staked Barn';
+      color = 'lime';
+      to = evt.from;
     } else if (evt.to === OldMint) {
-      event = 'DiscountMint';
+      event = 'Discount Mint';
       color = 'green';
+      to = evt.emiter;
     }
     return (
       <div>
@@ -147,7 +153,7 @@ export const PageInfo = () => {
           </a>
         </Tag>
         {event === evt.event && <Tag color={color}>{evt.from}</Tag>}
-        <Tag color={color}>{evt.to}</Tag>
+        <Tag color={color}>{to}</Tag>
         <WolfItem id={evt.tokenId.toString()}></WolfItem>
       </div>
     );
@@ -156,7 +162,7 @@ export const PageInfo = () => {
     return (
       <div>
         {evt.blockNumber}
-        <Tag color="geekblue">
+        <Tag color="lime">
           <a href={`${Config.ChainTX}${evt.tx}`} target="_blank">
             {evt.event}
           </a>
