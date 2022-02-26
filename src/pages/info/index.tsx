@@ -152,8 +152,14 @@ export const PageInfo = () => {
             {event}
           </a>
         </Tag>
-        {event === evt.event && <Tag color={color}>{evt.from}</Tag>}
-        <Tag color={color}>{to}</Tag>
+        {event === evt.event && (
+          <Tag color={color} onClick={() => setUser(evt.from)}>
+            {evt.from}
+          </Tag>
+        )}
+        <Tag color={color} onClick={() => setUser(to)}>
+          {to}
+        </Tag>
         <WolfItem id={evt.tokenId.toString()}></WolfItem>
       </div>
     );
@@ -167,7 +173,9 @@ export const PageInfo = () => {
             {evt.event}
           </a>
         </Tag>
-        <Tag color="geekblue">{evt.address}</Tag>
+        <Tag color="geekblue" onClick={() => setUser(evt.address)}>
+          {evt.address}
+        </Tag>
         <WolfItem id={evt.tokenId.toString()}></WolfItem>
       </div>
     );
