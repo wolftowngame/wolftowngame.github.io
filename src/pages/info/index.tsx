@@ -65,7 +65,7 @@ export const PageInfo = () => {
               blockNumber: item.blockNumber,
               tokenId: item.args?.tokenId,
               from: item.args?.from,
-              to: item.args?.to,
+              to,
               emiter: item.address,
             });
           } else if (item.event === 'TokenStolen') {
@@ -126,16 +126,17 @@ export const PageInfo = () => {
     if (evt.from === ethers.constants.AddressZero) {
       color = 'cyan';
       event = 'Mint';
-      if (evt.to === Config.Contract.Barn) {
-        event = 'Staked';
-        color = 'orange';
-      } else if (evt.to === OldMint) {
-        event = 'DiscountMint';
-        color = 'green';
-      } else if (evt.emiter !== evt.to) {
+      if (evt.emiter !== evt.to) {
         event = 'Lose';
         color = 'error';
       }
+    }
+    if (evt.to === Config.Contract.Barn) {
+      event = 'Staked';
+      color = 'orange';
+    } else if (evt.to === OldMint) {
+      event = 'DiscountMint';
+      color = 'green';
     }
     return (
       <div>
