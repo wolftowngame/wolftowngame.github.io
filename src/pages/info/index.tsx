@@ -98,6 +98,11 @@ export const PageInfo = () => {
     };
   }, []);
 
+  const updateUser = (address: string) => {
+    userInput.current = address;
+    setUser(address);
+  };
+
   const onUserChange = useCallback((e) => {
     userInput.current = e.target.value;
     if (userInput.current.length !== ethers.constants.AddressZero.length) return;
@@ -108,8 +113,7 @@ export const PageInfo = () => {
     await connectMetamask();
     await _getAddress();
     if (CurrentWalletEnv.wallet) {
-      userInput.current = CurrentWalletEnv.wallet;
-      setUser(CurrentWalletEnv.wallet);
+      updateUser(CurrentWalletEnv.wallet);
     }
     console.log(CurrentWalletEnv.wallet);
   }, []);
@@ -153,11 +157,11 @@ export const PageInfo = () => {
           </a>
         </Tag>
         {event === evt.event && (
-          <Tag color={color} onClick={() => setUser(evt.from)}>
+          <Tag color={color} onClick={() => updateUser(evt.from)}>
             {evt.from}
           </Tag>
         )}
-        <Tag color={color} onClick={() => setUser(to)}>
+        <Tag color={color} onClick={() => updateUser(to)}>
           {to}
         </Tag>
         <WolfItem id={evt.tokenId.toString()}></WolfItem>
@@ -173,7 +177,7 @@ export const PageInfo = () => {
             {evt.event}
           </a>
         </Tag>
-        <Tag color="geekblue" onClick={() => setUser(evt.address)}>
+        <Tag color="geekblue" onClick={() => updateUser(evt.address)}>
           {evt.address}
         </Tag>
         <WolfItem id={evt.tokenId.toString()}></WolfItem>
