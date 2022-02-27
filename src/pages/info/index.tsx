@@ -14,9 +14,20 @@ import { MyTimelineItem } from 'src/components/MyTimelineItem';
 const txCache: Record<string, boolean> = {};
 
 export const PageInfo = () => {
-  const [user, setUser] = useState('0x10febDB47De894026b91D639049E482f7E8C7e2e');
+  const [user, setUser] = useState(() => {
+    if (location.search) {
+      const search = new URLSearchParams(location.search);
+      return search.get('view') || '0x10febDB47De894026b91D639049E482f7E8C7e2e';
+    }
+    return '0x10febDB47De894026b91D639049E482f7E8C7e2e';
+  });
   const userInput = useRef(user);
-  const [milk, wool] = useERC20Balances(user, [Config.Contract.Milk, Config.Contract.Wool]);
+  const [milk, wool, bnbWoolLp, bnbMilkLp] = useERC20Balances(user, [
+    Config.Contract.Milk,
+    Config.Contract.Wool,
+    '0xe9C7bc98901d1B71d63902602Bff6E37dCdE79fC',
+    '0xa0290C4c4e7AdE8a2e9BDF5daF859F98737D14ec',
+  ]);
 
   const [nftList, set_nftList] = useState<Awaited<ReturnType<typeof loadWalletAnimalList>> | null>(null);
   const [stakedForMilk, set_stakedForMilk] = useState<Awaited<ReturnType<typeof stakedSheepsForWTMilk>> | null>(null);
@@ -190,6 +201,18 @@ export const PageInfo = () => {
           </Col>
           <Col span={2}></Col>
         </Row>
+        {bnbWoolLp && bnbMilkLp && (
+          <Row>
+            <Col span={2}></Col>
+            <Col span={10}>
+              <Statistic title="BNB-WOOL-LP" loading={!bnbWoolLp} value={bnbWoolLp ? utils.formatEther(bnbWoolLp) : '...'} />
+            </Col>
+            <Col span={10}>
+              <Statistic title="BNB-MILK-LP" loading={!bnbMilkLp} value={bnbMilkLp ? utils.formatEther(bnbMilkLp) : '...'} />
+            </Col>
+            <Col span={2}></Col>
+          </Row>
+        )}
         <Row>
           <Col span={2}></Col>
           <Col span={20}>

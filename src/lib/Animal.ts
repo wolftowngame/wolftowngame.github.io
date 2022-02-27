@@ -51,6 +51,13 @@ export const useERC20Balances = (user: string, tokens: string[]) => {
     });
   });
   useEffect(() => {
+    setBalances(
+      tokens.map((token) => {
+        const key = `ERC20Balance:${user}:${token}`;
+        BalanceCache[key] = BalanceCache[key] || {};
+        return BalanceCache[key].value || null;
+      })
+    );
     console.log('useEffect', user);
     const updateBalance = () => {
       setBalances((v) => {
