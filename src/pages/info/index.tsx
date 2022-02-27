@@ -7,23 +7,23 @@ import { Config, sleep } from 'src/Config';
 import { updateNFTs, useERC20Balances } from 'src/lib/Animal';
 import { connectMetamask, CurrentWalletEnv, getContractHandler, _getAddress } from 'src/lib/ethereum';
 import { loadWalletAnimalList, stakedSheepsForWTMilk, stakedSheepsForWTWool, stakedWolves } from 'src/lib/getList';
-import { Wolf, TokenStolenEvent, TransferEvent } from 'src/types/wolf';
+import { Wolf, TransferEvent } from 'src/types/wolf';
+import { DownOutlined, LoadingOutlined, RightOutlined } from '@ant-design/icons';
+import { MyTimelineItem } from 'src/components/MyTimelineItem';
 
 const txCache: Record<string, boolean> = {};
-
-const OldMint = '0xA40e34F4b933D33874Db73c427CdE0Eb53fe28eF';
 
 export const PageInfo = () => {
   const [user, setUser] = useState('0x10febDB47De894026b91D639049E482f7E8C7e2e');
   const userInput = useRef(user);
   const [milk, wool] = useERC20Balances(user, [Config.Contract.Milk, Config.Contract.Wool]);
 
-  const [nftList, set_nftList] = useState<Awaited<ReturnType<typeof loadWalletAnimalList>>>([]);
-  const [stakedForMilk, set_stakedForMilk] = useState<Awaited<ReturnType<typeof stakedSheepsForWTMilk>>>([]);
-  const [stakedForWool, set_stakedForWool] = useState<Awaited<ReturnType<typeof stakedSheepsForWTWool>>>([]);
-  const [stakedWolve, set_stakedWolve] = useState<Awaited<ReturnType<typeof stakedWolves>>>([]);
+  const [nftList, set_nftList] = useState<Awaited<ReturnType<typeof loadWalletAnimalList>> | null>(null);
+  const [stakedForMilk, set_stakedForMilk] = useState<Awaited<ReturnType<typeof stakedSheepsForWTMilk>> | null>(null);
+  const [stakedForWool, set_stakedForWool] = useState<Awaited<ReturnType<typeof stakedSheepsForWTWool>> | null>(null);
+  const [stakedWolve, set_stakedWolve] = useState<Awaited<ReturnType<typeof stakedWolves>> | null>(null);
 
-  const [lastEvts, set_lastEvts] = useState<{ lastBlock: number; data: Array<TransferEvent | TokenStolenEvent> }>({
+  const [lastEvts, set_lastEvts] = useState<{ lastBlock: number; data: Array<TransferEvent> }>({
     data: [],
     lastBlock: 0,
   });
@@ -31,6 +31,10 @@ export const PageInfo = () => {
   // totalStakesOf
 
   useEffect(() => {
+    set_nftList(null);
+    set_stakedForMilk(null);
+    set_stakedForWool(null);
+    set_stakedWolve(null);
     loadWalletAnimalList(user).then(set_nftList);
     stakedSheepsForWTMilk(user).then(set_stakedForMilk);
     stakedSheepsForWTWool(user).then(set_stakedForWool);
@@ -48,40 +52,54 @@ export const PageInfo = () => {
       set_lastEvts((v) => {
         const adds: typeof v.data = [];
         let lastBlock = v.lastBlock;
+        const txCacheMap: Record<string, TransferEvent> = {};
         res.forEach((item) => {
           if (item.blockNumber > lastBlock) lastBlock = item.blockNumber;
           const key = item.transactionHash + item.logIndex;
           if (txCache[key]) return;
           txCache[key] = true;
-          if (item.event === 'Transfer') {
-            // 折扣mint的中转，忽略
-            if (item.args?.from === OldMint) return;
+          if (item.event === 'Transfer' || item.event === 'TokenStolen') {
+            if (!txCacheMap[item.transactionHash]) {
+              txCacheMap[item.transactionHash] = {
+                tx: item.transactionHash,
+                key,
+                data: [],
+                blockNumber: item.blockNumber,
+                req: item.getTransaction(),
+              };
+              txCacheMap[item.transactionHash].req.then((res) => {
+                txCacheMap[item.transactionHash].res = res;
+              });
+              adds.push(txCacheMap[item.transactionHash]);
+            }
+            const transferData = txCacheMap[item.transactionHash];
             let to = item.args?.to;
-            adds.push({
-              tx: item.transactionHash,
-              key,
-              event: 'Transfer',
-              blockNumber: item.blockNumber,
-              tokenId: item.args?.tokenId,
-              from: item.args?.from,
-              to,
-              emiter: item.address,
-            });
-          } else if (item.event === 'TokenStolen') {
-            adds.push({
-              tx: item.transactionHash,
-              key,
-              event: 'TokenStolen',
-              blockNumber: item.blockNumber,
-              tokenId: item.args?._tokenId,
-              address: item.args?._address,
-              timestamp: item.args?._timestamp,
-            });
+            if (item.event === 'TokenStolen') {
+              transferData.data.push({
+                event: item.event,
+                tokenId: item.args?._tokenId,
+                from: item.args?._address,
+                to: item.args?._address,
+              });
+            } else {
+              transferData.data.push({
+                event: item.event,
+                tokenId: item.args?.tokenId,
+                from: item.args?.from,
+                to,
+              });
+            }
           }
         });
         if (adds.length > 0) {
           v.data.push(...adds);
-          updateNFTs(adds.map((it) => it.tokenId.toString()));
+          const tokenIdList: string[] = [];
+          adds.forEach((it) => {
+            it.data.forEach((sit) => {
+              tokenIdList.push(sit.tokenId.toString());
+            });
+          });
+          updateNFTs(tokenIdList);
         }
         return { lastBlock, data: [...v.data] };
       });
@@ -118,80 +136,14 @@ export const PageInfo = () => {
     console.log(CurrentWalletEnv.wallet);
   }, []);
 
-  const renderEvent = (evt: typeof lastEvts.data[0]) => {
-    if (evt.event === 'TokenStolen') return renderEventTokenStolen(evt);
-    if (evt.event === 'Transfer') return renderEventTransfer(evt);
-    return null;
-  };
-  const renderEventTransfer = (evt: TransferEvent) => {
-    let color = 'default';
-    let event: string = evt.event;
-    let to = evt.to;
-    if (evt.from === ethers.constants.AddressZero) {
-      color = 'cyan';
-      event = 'Mint';
-      if (evt.emiter !== evt.to) {
-        event = 'Lose';
-        color = 'error';
-      }
-    }
-    if (evt.from === Config.Contract.Barn) {
-      event = 'Leave Barn';
-      color = 'pink';
-      to = evt.emiter;
-    } else if (evt.to === Config.Contract.Barn) {
-      event = 'Staked Barn';
-      color = 'lime';
-      to = evt.from;
-    } else if (evt.to === OldMint) {
-      event = 'Discount Mint';
-      color = 'green';
-      to = evt.emiter;
-    }
-    return (
-      <div>
-        {evt.blockNumber}
-        <Tag color={color}>
-          <a href={`${Config.ChainTX}${evt.tx}`} target="_blank">
-            {event}
-          </a>
-        </Tag>
-        {event === evt.event && (
-          <Tag color={color} onClick={() => updateUser(evt.from)}>
-            {evt.from}
-          </Tag>
-        )}
-        <Tag color={color} onClick={() => updateUser(to)}>
-          {to}
-        </Tag>
-        <WolfItem id={evt.tokenId.toString()}></WolfItem>
-      </div>
-    );
-  };
-  const renderEventTokenStolen = (evt: TokenStolenEvent) => {
-    return (
-      <div>
-        {evt.blockNumber}
-        <Tag color="lime">
-          <a href={`${Config.ChainTX}${evt.tx}`} target="_blank">
-            {evt.event}
-          </a>
-        </Tag>
-        <Tag color="geekblue" onClick={() => updateUser(evt.address)}>
-          {evt.address}
-        </Tag>
-        <WolfItem id={evt.tokenId.toString()}></WolfItem>
-      </div>
-    );
-  };
-
-  const RenderList = (data: Wolf[], title: string) => {
+  const RenderList = (data: Wolf[] | null, title: string) => {
     console.log(data);
+    const show = data || [];
     return (
-      <Collapse.Panel header={`${title} (${data.length})`} key={title}>
+      <Collapse.Panel className={`panel-id-${title}`} header={`${title} (${show.length})`} key={title}>
         <List
           grid={{ gutter: 16, xs: 1, sm: 2, md: 4, lg: 4, xl: 6, xxl: 3 }}
-          dataSource={data}
+          dataSource={show}
           renderItem={(item) => (
             <List.Item>
               <Card title={item.name}>
@@ -241,7 +193,17 @@ export const PageInfo = () => {
         <Row>
           <Col span={2}></Col>
           <Col span={20}>
-            <Collapse defaultActiveKey={['1', '2', '3', '4']}>
+            <Collapse
+              defaultActiveKey={['1', '2', '3', '4']}
+              expandIcon={(props) => {
+                console.log(props.className);
+                if (props.className === `panel-id-unstaked` && !nftList) return <LoadingOutlined />;
+                if (props.className === `panel-id-stakedForMilk` && !stakedForMilk) return <LoadingOutlined />;
+                if (props.className === `panel-id-stakedForWool` && !stakedForWool) return <LoadingOutlined />;
+                if (props.className === `panel-id-stakedWolves` && !stakedWolve) return <LoadingOutlined />;
+                if (props.isActive) return <DownOutlined />;
+                return <RightOutlined />;
+              }}>
               {RenderList(nftList, 'unstaked')}
               {RenderList(stakedForMilk, 'stakedForMilk')}
               {RenderList(stakedForWool, 'stakedForWool')}
@@ -255,7 +217,7 @@ export const PageInfo = () => {
           <Col span={20}>
             <Timeline pending={`Loading...`} reverse={true}>
               {lastEvts.data.map((evt) => (
-                <Timeline.Item key={evt.key}>{renderEvent(evt)}</Timeline.Item>
+                <MyTimelineItem key={evt.key} evt={evt} updateUser={updateUser}></MyTimelineItem>
               ))}
             </Timeline>
           </Col>
