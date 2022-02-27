@@ -25,3 +25,5 @@ yarn-error.log*
 /cache
 /artifacts
 /bin
+/.discord
+/discord.config.ts

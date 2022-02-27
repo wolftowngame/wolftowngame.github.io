@@ -22,5 +22,5 @@
     "baseUrl": "."
   },
   "files": ["./hardhat.config.ts"],
-  "include": ["src", "./contracts", "./test"]
+  "include": ["src", "./contracts", "./test", "./serve", "index.ts","discord.config.ts"]
 }
