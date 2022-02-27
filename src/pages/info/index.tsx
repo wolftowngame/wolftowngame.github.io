@@ -10,17 +10,24 @@ import { loadWalletAnimalList, stakedSheepsForWTMilk, stakedSheepsForWTWool, sta
 import { Wolf, TransferEvent } from 'src/types/wolf';
 import { DownOutlined, LoadingOutlined, RightOutlined } from '@ant-design/icons';
 import { MyTimelineItem } from 'src/components/MyTimelineItem';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Queue } from 'src/lib/useQueue';
 
 const txCache: Record<string, boolean> = {};
 
 export const PageInfo = () => {
-  const [user, setUser] = useState(() => {
-    if (location.search) {
-      const search = new URLSearchParams(location.search);
-      return search.get('view') || '0x10febDB47De894026b91D639049E482f7E8C7e2e';
-    }
-    return '0x10febDB47De894026b91D639049E482f7E8C7e2e';
-  });
+  const navigate = useNavigate();
+  const loc = useLocation();
+  const urls = new URLSearchParams(loc.search);
+  const user = urls.get('user') || '0x10febDB47De894026b91D639049E482f7E8C7e2e';
+
+  const setUser = (u: string) => {
+    urls.set('user', u);
+    userInput.current = u;
+    navigate({ search: urls.toString() }, { replace: true });
+  };
+  const queue = useRef(new Queue());
+
   const userInput = useRef(user);
   const [milk, wool, bnbWoolLp, bnbMilkLp] = useERC20Balances(user, [
     Config.Contract.Milk,
@@ -42,14 +49,15 @@ export const PageInfo = () => {
   // totalStakesOf
 
   useEffect(() => {
+    const q = queue.current.get();
     set_nftList(null);
     set_stakedForMilk(null);
     set_stakedForWool(null);
     set_stakedWolve(null);
-    loadWalletAnimalList(user).then(set_nftList);
-    stakedSheepsForWTMilk(user).then(set_stakedForMilk);
-    stakedSheepsForWTWool(user).then(set_stakedForWool);
-    stakedWolves(user).then(set_stakedWolve);
+    loadWalletAnimalList(user).then((r) => queue.current.is(q) && set_nftList(r));
+    stakedSheepsForWTMilk(user).then((r) => queue.current.is(q) && set_stakedForMilk(r));
+    stakedSheepsForWTWool(user).then((r) => queue.current.is(q) && set_stakedForWool(r));
+    stakedWolves(user).then((r) => queue.current.is(q) && set_stakedWolve(r));
   }, [user]);
 
   useEffect(() => {
@@ -127,11 +135,6 @@ export const PageInfo = () => {
     };
   }, []);
 
-  const updateUser = (address: string) => {
-    userInput.current = address;
-    setUser(address);
-  };
-
   const onUserChange = useCallback((e) => {
     userInput.current = e.target.value;
     if (userInput.current.length !== ethers.constants.AddressZero.length) return;
@@ -142,7 +145,7 @@ export const PageInfo = () => {
     await connectMetamask();
     await _getAddress();
     if (CurrentWalletEnv.wallet) {
-      updateUser(CurrentWalletEnv.wallet);
+      setUser(CurrentWalletEnv.wallet);
     }
     console.log(CurrentWalletEnv.wallet);
   }, []);
@@ -240,7 +243,7 @@ export const PageInfo = () => {
           <Col span={20}>
             <Timeline pending={`Loading...`} reverse={true}>
               {lastEvts.data.map((evt) => (
-                <MyTimelineItem key={evt.key} evt={evt} updateUser={updateUser}></MyTimelineItem>
+                <MyTimelineItem key={evt.key} evt={evt} updateUser={setUser}></MyTimelineItem>
               ))}
             </Timeline>
           </Col>
