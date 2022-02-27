@@ -204,7 +204,7 @@ export const PageInfo = () => {
           </Col>
           <Col span={2}></Col>
         </Row>
-        {bnbWoolLp && bnbMilkLp && (
+        {/* {bnbWoolLp && bnbMilkLp && (
           <Row>
             <Col span={2}></Col>
             <Col span={10}>
@@ -215,7 +215,7 @@ export const PageInfo = () => {
             </Col>
             <Col span={2}></Col>
           </Row>
-        )}
+        )} */}
         <Row>
           <Col span={2}></Col>
           <Col span={20}>
