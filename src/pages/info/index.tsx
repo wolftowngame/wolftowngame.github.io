@@ -194,9 +194,7 @@ export const PageInfo = () => {
   return (
     <Layout>
       <Header style={{ color: '#fff' }}>
-        Barn Animal: {num.current}
-        <br />
-        Barn(BUG) Animal: {num.old}
+        Barn Animal: {num.current} ------- Barn(BUG) Animal: {num.old}
       </Header>
       <Content style={{ backgroundColor: '#fff', paddingTop: '20px' }}>
         <Row>
