@@ -39,6 +39,12 @@ const Cpt: React.FC<CptTypes> = (props) => {
       } else if (it.from === Config.Contract.Barn) {
         ress.push({ content: 'Leave Barn', color: 'pink', ctType: 2 });
         ress.push({ content: it.to, color: 'pink', ctType: 1 });
+      } else if (it.from === Config.Contract.BarnBUG) {
+        ress.push({ content: 'Leave BarnBUG', color: 'pink', ctType: 2 });
+        ress.push({ content: it.to, color: 'pink', ctType: 1 });
+      } else if (it.to === Config.Contract.BarnBUG) {
+        ress.push({ content: 'Staked BarnBUG', color: 'lime', ctType: 2 });
+        ress.push({ content: it.from, color: 'lime', ctType: 1 });
       } else if (it.to === Config.Contract.Barn) {
         ress.push({ content: 'Staked Barn', color: 'lime', ctType: 2 });
         ress.push({ content: it.from, color: 'lime', ctType: 1 });

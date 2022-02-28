@@ -6,7 +6,7 @@ import { WolfItem } from 'src/components/Wolftem';
 import { Config, sleep } from 'src/Config';
 import { updateNFTs, useERC20Balances } from 'src/lib/Animal';
 import { connectMetamask, CurrentWalletEnv, getContractHandler, _getAddress } from 'src/lib/ethereum';
-import { loadWalletAnimalList, stakedSheepsForWTMilk, stakedSheepsForWTWool, stakedWolves } from 'src/lib/getList';
+import { loadWalletAnimalList, stakedSheepsForWTMilk, stakedSheepsForWTMilk2, stakedSheepsForWTWool, stakedSheepsForWTWool2, stakedWolves, stakedWolves2 } from 'src/lib/getList';
 import { Wolf, TransferEvent } from 'src/types/wolf';
 import { DownOutlined, LoadingOutlined, RightOutlined } from '@ant-design/icons';
 import { MyTimelineItem } from 'src/components/MyTimelineItem';
@@ -41,6 +41,10 @@ export const PageInfo = () => {
   const [stakedForWool, set_stakedForWool] = useState<Awaited<ReturnType<typeof stakedSheepsForWTWool>> | null>(null);
   const [stakedWolve, set_stakedWolve] = useState<Awaited<ReturnType<typeof stakedWolves>> | null>(null);
 
+  const [stakedForMilk2, set_stakedForMilk2] = useState<Awaited<ReturnType<typeof stakedSheepsForWTMilk>> | null>(null);
+  const [stakedForWool2, set_stakedForWool2] = useState<Awaited<ReturnType<typeof stakedSheepsForWTWool>> | null>(null);
+  const [stakedWolve2, set_stakedWolve2] = useState<Awaited<ReturnType<typeof stakedWolves>> | null>(null);
+
   const [lastEvts, set_lastEvts] = useState<{ lastBlock: number; data: Array<TransferEvent> }>({
     data: [],
     lastBlock: 0,
@@ -58,6 +62,10 @@ export const PageInfo = () => {
     stakedSheepsForWTMilk(user).then((r) => queue.current.is(q) && set_stakedForMilk(r));
     stakedSheepsForWTWool(user).then((r) => queue.current.is(q) && set_stakedForWool(r));
     stakedWolves(user).then((r) => queue.current.is(q) && set_stakedWolve(r));
+
+    stakedSheepsForWTMilk2(user).then((r) => queue.current.is(q) && set_stakedForMilk2(r));
+    stakedSheepsForWTWool2(user).then((r) => queue.current.is(q) && set_stakedForWool2(r));
+    stakedWolves2(user).then((r) => queue.current.is(q) && set_stakedWolve2(r));
   }, [user]);
 
   useEffect(() => {
@@ -227,6 +235,10 @@ export const PageInfo = () => {
                 if (props.className === `panel-id-stakedForMilk` && !stakedForMilk) return <LoadingOutlined />;
                 if (props.className === `panel-id-stakedForWool` && !stakedForWool) return <LoadingOutlined />;
                 if (props.className === `panel-id-stakedWolves` && !stakedWolve) return <LoadingOutlined />;
+
+                if (props.className === `panel-id-stakedForMilk-OLD` && !stakedForMilk2) return <LoadingOutlined />;
+                if (props.className === `panel-id-stakedForWool-OLD` && !stakedForWool2) return <LoadingOutlined />;
+                if (props.className === `panel-id-stakedWolves-OLD` && !stakedWolve2) return <LoadingOutlined />;
                 if (props.isActive) return <DownOutlined />;
                 return <RightOutlined />;
               }}>
@@ -234,6 +246,10 @@ export const PageInfo = () => {
               {RenderList(stakedForMilk, 'stakedForMilk')}
               {RenderList(stakedForWool, 'stakedForWool')}
               {RenderList(stakedWolve, 'stakedWolves')}
+
+              {RenderList(stakedForMilk2, 'stakedForMilk-OLD')}
+              {RenderList(stakedForWool2, 'stakedForWool-OLD')}
+              {RenderList(stakedWolve2, 'stakedWolves-OLD')}
             </Collapse>
           </Col>
           <Col span={2}></Col>
