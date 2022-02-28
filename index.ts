@@ -1,5 +1,5 @@
-const fs = require('fs');
-const { Client, Intents } = require('discord.js');
+import fs from 'fs';
+import { Client, Intents } from 'discord.js';
 const BOT_TOKEN = fs.existsSync('.discord') ? fs.readFileSync('.discord').toString().trim() : '';
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS],
