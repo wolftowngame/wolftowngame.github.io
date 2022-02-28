@@ -29,7 +29,7 @@ const Cpt: React.FC<CptTypes> = (props) => {
     .map((it) => {
       const ress: Array<{ color: string; ctType: number; content: string }> = [];
       if (it.from === ethers.constants.AddressZero) {
-        if (res && res.from !== it.to) {
+        if (res && res.from !== it.to && it.to !== Config.Contract.Wolf) {
           ress.push({ content: 'Lose', color: 'red', ctType: 2 });
           ress.push({ content: res.from, color: 'red', ctType: 1 });
         } else {
