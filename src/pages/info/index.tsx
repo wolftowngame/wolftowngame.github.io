@@ -36,6 +36,8 @@ export const PageInfo = () => {
     '0xa0290C4c4e7AdE8a2e9BDF5daF859F98737D14ec',
   ]);
 
+  const [num, setNum] = useState({ current: 0, old: 0 });
+
   const [nftList, set_nftList] = useState<Awaited<ReturnType<typeof loadWalletAnimalList>> | null>(null);
   const [stakedForMilk, set_stakedForMilk] = useState<Awaited<ReturnType<typeof stakedSheepsForWTMilk>> | null>(null);
   const [stakedForWool, set_stakedForWool] = useState<Awaited<ReturnType<typeof stakedSheepsForWTWool>> | null>(null);
@@ -70,6 +72,13 @@ export const PageInfo = () => {
 
   useEffect(() => {
     const Wolf = getContractHandler('Wolf', false);
+
+    Promise.all([Wolf.balanceOf(Config.Contract.Barn), Wolf.balanceOf(Config.Contract.BarnBUG)]).then((res: any) => {
+      setNum({
+        current: res[0].toNumber(),
+        old: res[1].toNumber(),
+      });
+    });
     const query = async () => {
       const res = await Wolf.queryFilter({}, (-60 * 60) / 3, 'latest').catch((e) => {
         console.error('事件获取异常', e);
@@ -184,7 +193,11 @@ export const PageInfo = () => {
   };
   return (
     <Layout>
-      <Header></Header>
+      <Header style={{ color: '#fff' }}>
+        Barn Animal: {num.current}
+        <br />
+        Barn(BUG) Animal: {num.old}
+      </Header>
       <Content style={{ backgroundColor: '#fff', paddingTop: '20px' }}>
         <Row>
           <Col span={2}></Col>
