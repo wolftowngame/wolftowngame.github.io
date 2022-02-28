@@ -27,3 +27,4 @@ yarn-error.log*
 /bin
 /.discord
 /discord.config.ts
+/yarn.lock
