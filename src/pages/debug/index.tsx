@@ -78,7 +78,7 @@ export const PageDebug = () => {
   const queryLog = async () => {
     const LocalKeys = MyErrTxDB.keys();
     const dbKeys = await LocalKeys;
-    const lastBlockNum = 15680503;
+    const lastBlockNum = 15360283 - 1; // 15680503;
     let fromBlock = 15167768;
     const txs = await Promise.all(dbKeys.map(async (tx) => (await MyErrTxDB.getItem(tx))!));
     setErrTx((v) => {
