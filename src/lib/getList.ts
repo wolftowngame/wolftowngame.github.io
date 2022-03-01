@@ -55,3 +55,17 @@ export const getAniJSON = async (uri: string): Promise<Wolf> => {
   const res = await axios.get(uri);
   return res.data;
 };
+
+export const downloadJSON = (content: string, name: string) => {
+  var Link = document.createElement('a');
+  Link.download = name + '.json';
+  Link.style.display = 'none';
+  // 字符内容转变成blob地址
+  var blob = new Blob([content]);
+  Link.href = URL.createObjectURL(blob);
+  // 触发点击
+  document.body.appendChild(Link);
+  Link.click();
+  // 然后移除
+  document.body.removeChild(Link);
+};

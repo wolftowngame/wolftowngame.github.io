@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { WolfItem } from 'src/components/Wolftem';
 import { Config, sleep } from 'src/Config';
 import { updateNFTs, useERC20Balances } from 'src/lib/Animal';
-import { connectMetamask, CurrentWalletEnv, getContractHandler, _getAddress } from 'src/lib/ethereum';
+import { connectMetamask, CurrentWalletEnv, getContractHandler, StaticWeb3Read, _getAddress } from 'src/lib/ethereum';
 import { loadWalletAnimalList, stakedSheepsForWTMilk, stakedSheepsForWTMilk2, stakedSheepsForWTWool, stakedSheepsForWTWool2, stakedWolves, stakedWolves2 } from 'src/lib/getList';
 import { Wolf, TransferEvent } from 'src/types/wolf';
 import { DownOutlined, LoadingOutlined, RightOutlined } from '@ant-design/icons';
@@ -72,6 +72,7 @@ export const PageInfo = () => {
 
   useEffect(() => {
     const Wolf = getContractHandler('Wolf', false);
+    const Barn = getContractHandler('Barn', false);
 
     Promise.all([Wolf.balanceOf(Config.Contract.Barn), Wolf.balanceOf(Config.Contract.BarnBUG)]).then((res: any) => {
       setNum({
