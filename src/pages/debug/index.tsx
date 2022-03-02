@@ -10,7 +10,9 @@ import { MyURICache } from 'src/lib/LocalDB';
 import { ErrTxDto, MyErrTxDB } from 'src/lib/ErrTxDB';
 import { sleep } from 'src/Config';
 import { StaticWeb3Read } from 'src/lib/ethereum';
+import { WolfItem } from 'src/components/Wolftem';
 
+const lastBlockNum = 15680503;
 const Wolf = new Contract('0xE686133662190070c4A4Bea477fCF48dF35F5b2c', require('src/abi/Wolf.json'), StaticWeb3Read);
 const ids = new Array(6000).fill('').map((i, v) => v + '');
 const CacheTx: Record<string, boolean> = {};
@@ -33,7 +35,7 @@ export const PageDebug = () => {
     }
   };
 
-  const getLog = async (fromBlock: number, toBlock: number) => {
+  const getLog = async (keys: string[], fromBlock: number, toBlock: number) => {
     let address = Wolf.address; // Wolf
     let topic0 = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'; // Transfer
     const res = await axios.get(
@@ -43,12 +45,15 @@ export const PageDebug = () => {
     if (res.data.status !== '1') {
       return fromBlock;
     }
+    // ended
+    if (res.data.result.length < 100) fromBlock = toBlock;
     for (const evt of res.data.result) {
       const tx = evt.transactionHash;
       if (CacheTx[tx]) continue;
       CacheTx[tx] = true;
-      fromBlock = parseInt(evt.blockNumber);
+      fromBlock = Math.max(parseInt(evt.blockNumber), fromBlock);
       setLast(fromBlock);
+      if (keys.includes(tx)) continue;
       const txs = await Promise.all([StaticWeb3Read.getTransaction(tx), StaticWeb3Read.getTransactionReceipt(tx)]);
       const tokenIds: string[] = [];
       txs[1].logs.forEach((it) => {
@@ -78,17 +83,17 @@ export const PageDebug = () => {
   const queryLog = async () => {
     const LocalKeys = MyErrTxDB.keys();
     const dbKeys = await LocalKeys;
-    const lastBlockNum = 15360283 - 1; // 15680503;
-    let fromBlock = 15167768;
+    let fromBlock = 15360283 - 1;
     const txs = await Promise.all(dbKeys.map(async (tx) => (await MyErrTxDB.getItem(tx))!));
     setErrTx((v) => {
       return txs;
     });
+    if (txs[txs.length - 1]) setLast(txs[txs.length - 1].blockNumber);
     txs.forEach((v) => {
       fromBlock = Math.max(fromBlock, v.blockNumber);
     });
     while (fromBlock < lastBlockNum) {
-      fromBlock = await getLog(fromBlock, lastBlockNum);
+      fromBlock = await getLog(dbKeys, fromBlock, lastBlockNum);
       await sleep(6000);
     }
   };
@@ -100,7 +105,9 @@ export const PageDebug = () => {
   const errtx = ErrTx.filter((tx) => !list.includes(tx.to)).sort((a, b) => a.blockNumber - b.blockNumber);
   return (
     <Layout>
-      <Header style={{ color: '#fff' }}>{last}</Header>
+      <Header style={{ color: '#fff' }}>
+        {last} {last >= lastBlockNum ? 'end' : ''}
+      </Header>
       <Content style={{ backgroundColor: '#fff', paddingTop: '20px' }}>
         <Row>
           <Col onClick={() => downloadJSON(JSON.stringify(errtx), 'wolf')}>Download</Col>
@@ -110,7 +117,10 @@ export const PageDebug = () => {
             {errtx.map((err) => {
               return (
                 <div key={err.tx}>
-                  from: {err.from}, to: {err.to}, 【#{err.tokenIds.join(' #')}】
+                  from: {err.from}, to: {err.to},{' '}
+                  {err.tokenIds.map((id) => (
+                    <WolfItem key={id} id={id}></WolfItem>
+                  ))}
                   <a href={`https://bscscan.com/tx/${err.tx}`} target="_blank">
                     tx
                   </a>

@@ -136,6 +136,7 @@ export const useWolfItem = (id: string) => {
     if (!id) return;
     const key = `${id}`;
     AppEvent.on(`URI:${key}`, metaUpdate);
+    updateNFTs([id]);
     return () => {
       AppEvent.off(`URI:${key}`, metaUpdate);
     };
