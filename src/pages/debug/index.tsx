@@ -12,11 +12,11 @@ import { sleep } from 'src/Config';
 import { StaticWeb3Read } from 'src/lib/ethereum';
 import { WolfItem } from 'src/components/Wolftem';
 
-const lastBlockNum = 15680503;
 const Wolf = new Contract('0xE686133662190070c4A4Bea477fCF48dF35F5b2c', require('src/abi/Wolf.json'), StaticWeb3Read);
 const ids = new Array(6000).fill('').map((i, v) => v + '');
 const CacheTx: Record<string, boolean> = {};
 export const PageDebug = () => {
+  const [lastBlockNum, set_lastBlockNum] = useState(15680503);
   const [last, setLast] = useState(0);
   const [ErrTx, setErrTx] = useState<ErrTxDto[]>([]);
   const queryAllWolf = async (id: string) => {
@@ -92,6 +92,9 @@ export const PageDebug = () => {
     txs.forEach((v) => {
       fromBlock = Math.max(fromBlock, v.blockNumber);
     });
+    let _lastBlockNum = lastBlockNum;
+    _lastBlockNum = await StaticWeb3Read.getBlockNumber();
+    set_lastBlockNum(_lastBlockNum);
     while (fromBlock < lastBlockNum) {
       fromBlock = await getLog(dbKeys, fromBlock, lastBlockNum);
       await sleep(6000);
