@@ -29,7 +29,10 @@ const Cpt: React.FC<CptTypes> = (props) => {
     .map((it) => {
       const ress: Array<{ color: string; ctType: number; content: string }> = [];
       if (it.to === '0xCe487D0Ab195D28FE18D5279B042498f84eb051F') it.event = 'Rescue';
-      if (it.from === ethers.constants.AddressZero) {
+      if (it.event === 'Rescue') {
+        ress.push({ content: it.event, color: 'green', ctType: 2 });
+        ress.push({ content: it.to, color: 'green', ctType: 1 });
+      } else if (it.from === ethers.constants.AddressZero) {
         if (res && res.from !== it.to && it.to !== Config.Contract.Wolf) {
           ress.push({ content: 'Lose', color: 'red', ctType: 2 });
           ress.push({ content: res.from, color: 'red', ctType: 1 });
@@ -49,9 +52,6 @@ const Cpt: React.FC<CptTypes> = (props) => {
       } else if (it.event === 'TokenStolen') {
         ress.push({ content: it.event, color: 'geekblue', ctType: 2 });
         ress.push({ content: it.to, color: 'geekblue', ctType: 1 });
-      } else if (it.event === 'Rescue') {
-        ress.push({ content: it.event, color: 'green', ctType: 2 });
-        ress.push({ content: it.to, color: 'green', ctType: 1 });
       } else {
         ress.push({ content: it.event, color: 'default', ctType: 2 });
         ress.push({ content: it.from, color: 'default', ctType: 1 });
