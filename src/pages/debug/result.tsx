@@ -38,9 +38,9 @@ export const PageDebugResult = () => {
               return (
                 <div key={err.tx}>
                   from: {err.from}, to: {err.to},{' '}
-                  {err.tokenIds.map((id) => (
+                  {/* {err.tokenIds.map((id) => (
                     <WolfItem key={id} id={id}></WolfItem>
-                  ))}
+                  ))} */}
                   <a href={`https://bscscan.com/tx/${err.tx}`} target="_blank">
                     tx
                   </a>
