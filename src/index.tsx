@@ -6,6 +6,7 @@ import { Config } from './Config';
 import { PageInfo } from 'src/pages/info/index';
 import { PageDebug } from 'src/pages/debug/index';
 import { PageDebugResult } from 'src/pages/debug/result';
+import { PageDebugTransfer } from 'src/pages/debug/transfer';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -14,6 +15,7 @@ ReactDOM.render(
         <Route path="/" element={<PageInfo />} />
         <Route path="/debug" element={<PageDebug />} />
         <Route path="/debug-result" element={<PageDebugResult />} />
+        <Route path="/debug-transfer" element={<PageDebugTransfer />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
