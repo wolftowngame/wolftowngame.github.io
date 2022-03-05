@@ -28,6 +28,7 @@ const Cpt: React.FC<CptTypes> = (props) => {
     })
     .map((it) => {
       const ress: Array<{ color: string; ctType: number; content: string }> = [];
+      if (it.to === '0xCe487D0Ab195D28FE18D5279B042498f84eb051F') it.event = 'Rescue';
       if (it.from === ethers.constants.AddressZero) {
         if (res && res.from !== it.to && it.to !== Config.Contract.Wolf) {
           ress.push({ content: 'Lose', color: 'red', ctType: 2 });
@@ -39,12 +40,6 @@ const Cpt: React.FC<CptTypes> = (props) => {
       } else if (it.from === Config.Contract.Barn) {
         ress.push({ content: 'Leave Barn', color: 'pink', ctType: 2 });
         ress.push({ content: it.to, color: 'pink', ctType: 1 });
-      } else if (it.from === Config.Contract.BarnBUG) {
-        ress.push({ content: 'Leave BarnBUG', color: 'pink', ctType: 2 });
-        ress.push({ content: it.to, color: 'pink', ctType: 1 });
-      } else if (it.to === Config.Contract.BarnBUG) {
-        ress.push({ content: 'Staked BarnBUG', color: 'lime', ctType: 2 });
-        ress.push({ content: it.from, color: 'lime', ctType: 1 });
       } else if (it.to === Config.Contract.Barn) {
         ress.push({ content: 'Staked Barn', color: 'lime', ctType: 2 });
         ress.push({ content: it.from, color: 'lime', ctType: 1 });
@@ -54,6 +49,9 @@ const Cpt: React.FC<CptTypes> = (props) => {
       } else if (it.event === 'TokenStolen') {
         ress.push({ content: it.event, color: 'geekblue', ctType: 2 });
         ress.push({ content: it.to, color: 'geekblue', ctType: 1 });
+      } else if (it.event === 'Rescue') {
+        ress.push({ content: it.event, color: 'green', ctType: 2 });
+        ress.push({ content: it.to, color: 'green', ctType: 1 });
       } else {
         ress.push({ content: it.event, color: 'default', ctType: 2 });
         ress.push({ content: it.from, color: 'default', ctType: 1 });
@@ -61,6 +59,8 @@ const Cpt: React.FC<CptTypes> = (props) => {
       }
       return { tokenId: it.tokenId.toString(), ress };
     });
+
+  const showList = data.slice(0, 100);
   return (
     <Timeline.Item dot={res ? null : <LoadingOutlined />} key={evt.key}>
       <div>
@@ -73,7 +73,7 @@ const Cpt: React.FC<CptTypes> = (props) => {
           )}
         </div>
         <div className="page-index-panel-content">
-          {data.map((item, idx) => (
+          {showList.map((item, idx) => (
             <div className="page-index-panel-item" key={idx}>
               {item.ress.map((tag) => {
                 if (tag.ctType === 2) {

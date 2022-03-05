@@ -6,7 +6,7 @@ import { WolfItem } from 'src/components/Wolftem';
 import { Config, sleep } from 'src/Config';
 import { updateNFTs, useERC20Balances } from 'src/lib/Animal';
 import { connectMetamask, CurrentWalletEnv, getContractHandler, StaticWeb3Read, _getAddress } from 'src/lib/ethereum';
-import { loadWalletAnimalList, stakedSheepsForWTMilk, stakedSheepsForWTMilk2, stakedSheepsForWTWool, stakedSheepsForWTWool2, stakedWolves, stakedWolves2 } from 'src/lib/getList';
+import { loadWalletAnimalList, stakedSheepsForWTMilk, stakedSheepsForWTWool, stakedWolves } from 'src/lib/getList';
 import { Wolf, TransferEvent } from 'src/types/wolf';
 import { DownOutlined, LoadingOutlined, RightOutlined } from '@ant-design/icons';
 import { MyTimelineItem } from 'src/components/MyTimelineItem';
@@ -36,16 +36,12 @@ export const PageInfo = () => {
     '0xa0290C4c4e7AdE8a2e9BDF5daF859F98737D14ec',
   ]);
 
-  const [num, setNum] = useState({ current: 0, old: 0 });
+  const [num, setNum] = useState({ current: 0 });
 
   const [nftList, set_nftList] = useState<Awaited<ReturnType<typeof loadWalletAnimalList>> | null>(null);
   const [stakedForMilk, set_stakedForMilk] = useState<Awaited<ReturnType<typeof stakedSheepsForWTMilk>> | null>(null);
   const [stakedForWool, set_stakedForWool] = useState<Awaited<ReturnType<typeof stakedSheepsForWTWool>> | null>(null);
   const [stakedWolve, set_stakedWolve] = useState<Awaited<ReturnType<typeof stakedWolves>> | null>(null);
-
-  const [stakedForMilk2, set_stakedForMilk2] = useState<Awaited<ReturnType<typeof stakedSheepsForWTMilk>> | null>(null);
-  const [stakedForWool2, set_stakedForWool2] = useState<Awaited<ReturnType<typeof stakedSheepsForWTWool>> | null>(null);
-  const [stakedWolve2, set_stakedWolve2] = useState<Awaited<ReturnType<typeof stakedWolves>> | null>(null);
 
   const [lastEvts, set_lastEvts] = useState<{ lastBlock: number; data: Array<TransferEvent> }>({
     data: [],
@@ -64,24 +60,19 @@ export const PageInfo = () => {
     stakedSheepsForWTMilk(user).then((r) => queue.current.is(q) && set_stakedForMilk(r));
     stakedSheepsForWTWool(user).then((r) => queue.current.is(q) && set_stakedForWool(r));
     stakedWolves(user).then((r) => queue.current.is(q) && set_stakedWolve(r));
-
-    stakedSheepsForWTMilk2(user).then((r) => queue.current.is(q) && set_stakedForMilk2(r));
-    stakedSheepsForWTWool2(user).then((r) => queue.current.is(q) && set_stakedForWool2(r));
-    stakedWolves2(user).then((r) => queue.current.is(q) && set_stakedWolve2(r));
   }, [user]);
 
   useEffect(() => {
     const Wolf = getContractHandler('Wolf', false);
     const Barn = getContractHandler('Barn', false);
 
-    Promise.all([Wolf.balanceOf(Config.Contract.Barn), Wolf.balanceOf(Config.Contract.BarnBUG)]).then((res: any) => {
+    Wolf.balanceOf(Config.Contract.Barn).then((res: any) => {
       setNum({
-        current: res[0].toNumber(),
-        old: res[1].toNumber(),
+        current: res.toNumber(),
       });
     });
     const query = async () => {
-      const res = await Wolf.queryFilter({}, (-60 * 60) / 3, 'latest').catch((e) => {
+      const res = await Wolf.queryFilter({}, (-30 * 60) / 3, 'latest').catch((e) => {
         console.error('事件获取异常', e);
         return Promise.resolve([] as ethers.Event[]);
       });
@@ -194,9 +185,7 @@ export const PageInfo = () => {
   };
   return (
     <Layout>
-      <Header style={{ color: '#fff' }}>
-        Barn Animal: {num.current} ------- Barn(BUG) Animal: {num.old}
-      </Header>
+      <Header style={{ color: '#fff' }}>Barn Animal: {num.current}</Header>
       <Content style={{ backgroundColor: '#fff', paddingTop: '20px' }}>
         <Row>
           <Col span={2}></Col>
@@ -247,10 +236,6 @@ export const PageInfo = () => {
                 if (props.className === `panel-id-stakedForMilk` && !stakedForMilk) return <LoadingOutlined />;
                 if (props.className === `panel-id-stakedForWool` && !stakedForWool) return <LoadingOutlined />;
                 if (props.className === `panel-id-stakedWolves` && !stakedWolve) return <LoadingOutlined />;
-
-                if (props.className === `panel-id-stakedForMilk-OLD` && !stakedForMilk2) return <LoadingOutlined />;
-                if (props.className === `panel-id-stakedForWool-OLD` && !stakedForWool2) return <LoadingOutlined />;
-                if (props.className === `panel-id-stakedWolves-OLD` && !stakedWolve2) return <LoadingOutlined />;
                 if (props.isActive) return <DownOutlined />;
                 return <RightOutlined />;
               }}>
@@ -258,10 +243,6 @@ export const PageInfo = () => {
               {RenderList(stakedForMilk, 'stakedForMilk')}
               {RenderList(stakedForWool, 'stakedForWool')}
               {RenderList(stakedWolve, 'stakedWolves')}
-
-              {RenderList(stakedForMilk2, 'stakedForMilk-OLD')}
-              {RenderList(stakedForWool2, 'stakedForWool-OLD')}
-              {RenderList(stakedWolve2, 'stakedWolves-OLD')}
             </Collapse>
           </Col>
           <Col span={2}></Col>

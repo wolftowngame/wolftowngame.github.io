@@ -35,22 +35,6 @@ export const stakedSheepsForWTMilk = async (address: string): Promise<Wolf[]> =>
   return ERC20API.ERC721TokenURIs(ids, Config.Contract.Wolf).then((res: any) => Promise.all(res.map(getAniJSON)));
 };
 
-export const stakedWolves2 = async (address: string): Promise<Wolf[]> => {
-  const Barn = getContractHandler('BarnBUG', false);
-  const ids = await Barn.stakedWolves(address);
-  return ERC20API.ERC721TokenURIs(ids, Config.Contract.Wolf).then((res: any) => Promise.all(res.map(getAniJSON)));
-};
-export const stakedSheepsForWTWool2 = async (address: string): Promise<Wolf[]> => {
-  const Barn = getContractHandler('BarnBUG', false);
-  const ids = await Barn.stakedSheepsForWTWool(address);
-  return ERC20API.ERC721TokenURIs(ids, Config.Contract.Wolf).then((res: any) => Promise.all(res.map(getAniJSON)));
-};
-export const stakedSheepsForWTMilk2 = async (address: string): Promise<Wolf[]> => {
-  const Barn = getContractHandler('BarnBUG', false);
-  const ids = await Barn.stakedSheepsForWTMilk(address);
-  return ERC20API.ERC721TokenURIs(ids, Config.Contract.Wolf).then((res: any) => Promise.all(res.map(getAniJSON)));
-};
-
 export const getAniJSON = async (uri: string): Promise<Wolf> => {
   const res = await axios.get(uri);
   return res.data;
