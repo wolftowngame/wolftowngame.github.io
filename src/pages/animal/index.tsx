@@ -35,6 +35,7 @@ const App = () => {
     return (
       <List
         dataSource={showList}
+        rowKey={(item) => item}
         renderItem={(item) => (
           <Card key={item}>
             <WolfItem detail={true} id={item} />
