@@ -4,7 +4,7 @@ import { Wolf } from 'src/types/wolf';
 class MyIndexedDB {
   db!: IDBDatabase;
   table = `URI`;
-  name = `${Config.Contract.Wolf}`;
+  name = `${Config.Contract.Wolf}-2`;
   mounted: Promise<any>;
   constructor() {
     const request = window.indexedDB.open(this.name, 2);

@@ -95,6 +95,7 @@ export const updateNFTs = async (TokenIds: string[]) => {
   console.log('updateNFTs', TokenIds, dbKeys);
   const query = TokenIds.filter((id) => {
     const key = `${id}`;
+    if (TokenIdOfURI[key]) return false;
     // 优先使用本地缓存数据
     if (dbKeys.includes(id)) {
       MyURICache.getItem(id).then((res) => {
@@ -104,28 +105,44 @@ export const updateNFTs = async (TokenIds: string[]) => {
       });
       return false;
     }
+    TokenIdOfURI[key] = {
+      name: `#${id}`,
+      description: '',
+      image: '',
+      imageSmall: '',
+      attributes: [],
+    };
     return true;
   });
   if (query.length === 0) return [];
-  while (query.length > 0) {
-    await getData(query.splice(0, 50));
+  try {
+    const uriMap: Record<string, Wolf> = await fetch(`https://app.wolftown.world/animals?ids=${encodeURIComponent(JSON.stringify(query))}`).then((a) => a.json());
+    const list = await Promise.all(
+      query.map(async (id) => {
+        const data = uriMap[id];
+        if (data && data.name) return Promise.resolve(data);
+        const tt = await getContractHandler('Wolf').tokenTraits(id);
+        const wot: Wolf = {
+          name: `#${id} ${tt.isSheep ? 'Sheep' : 'Wolf'}`,
+          description: '',
+          image: '',
+          imageSmall: '',
+          attributes: [{ trait_type: 'type', value: tt.isSheep ? 'Sheep' : 'Wolf' }],
+        };
+        return wot;
+      })
+    );
+    query.forEach((it, i) => {
+      const key = `${it}`;
+      const uriData = list[i];
+      if (uriData) MyURICache.setItem(uriData);
+      TokenIdOfURI[key] = uriData;
+      AppEvent.emit(`URI:${key}`, TokenIdOfURI[key]);
+    });
+  } catch (e) {
+    console.error('e', e, query);
   }
   return TokenIds.map((id) => TokenIdOfURI[`${id}`]);
-  async function getData(data: typeof query) {
-    try {
-      const list = await Promise.all(TokenIds.map((id) => getAniJSON(`https://app.wolftown.world/animals/${id.toString()}`)));
-      console.log('list', list);
-      data.forEach((it, i) => {
-        const key = `${it}`;
-        const uriData = list[i];
-        if (uriData) MyURICache.setItem(uriData);
-        TokenIdOfURI[key] = uriData;
-        AppEvent.emit(`URI:${key}`, TokenIdOfURI[key]);
-      });
-    } catch (e) {
-      console.error('e', e, data);
-    }
-  }
 };
 
 export const useWolfItem = (id: string) => {
