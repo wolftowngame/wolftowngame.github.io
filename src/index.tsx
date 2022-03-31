@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.scss';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Config } from './Config';
+import { PageInfoBuilding } from 'src/pages/info/building';
 import { PageInfo } from 'src/pages/info/index';
 import { PageDebug } from 'src/pages/debug/index';
 import { PageDebugResult } from 'src/pages/debug/result';
@@ -20,6 +21,7 @@ ReactDOM.render(
         <Route path="/debug-result" element={<PageDebugResult />} />
         <Route path="/evt0312" element={<Evt0312 />} />
         <Route path="/debug-transfer" element={<PageDebugTransfer />} />
+        <Route path="/info-building" element={<PageInfoBuilding />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,

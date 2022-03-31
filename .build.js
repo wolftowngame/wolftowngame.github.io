@@ -7,7 +7,7 @@ const dir = path.join(__dirname, 'docs');
 // 获取html文件
 const FileStr = fs.readFileSync(path.join(dir, 'index.html'), 'utf-8');
 
-const pages = ['debug.html', 'debug-result.html', 'animal.html'];
+const pages = ['debug.html', 'debug-result.html', 'animal.html', 'info-building.html'];
 
 pages.forEach((item) => {
   fs.writeFile(path.join(dir, item), FileStr, (err) => {
